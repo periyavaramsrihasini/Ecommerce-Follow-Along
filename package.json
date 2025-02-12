@@ -1,0 +1,26 @@
+{
+  "name": "ecommerce",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "This project will guide you through building  full-stack E-commerce website  using the MERN stack (MongoDB, Express, React, Node.js). It allows users to browse products, add them to the cart, and proceed to checkout. Admin users can manage products, view orders, and update inventory.",
+  "dependencies": {
+    "@tailwindcss/postcss": "^4.0.3",
+    "axios": "^1.7.9",
+    "country-state-city": "^3.2.1",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "mongoose": "^8.10.0",
+    "postcss": "^8.5.1",
+    "react": "^19.0.0",
+    "react-icons": "^5.4.0",
+    "react-lottie": "^1.2.10",
+    "react-router-dom": "^7.1.5",
+    "tailwindcss": "^4.0.3"
+  }
+}
