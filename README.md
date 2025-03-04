@@ -147,8 +147,36 @@ Create a Product with name, descriptions, price and Image URL
 Validates input before storing data in MongoDB
 RESTful POST endpoint to add products
 
-## Milestone 11: Displaying all products from Database
-In this milestone, we focused on sending and receiving product data between the backend and frontend, and dynamically displaying the product information using React components.
-Creating an API Endpoint to send product data
-Receive data on the frontend
-Dynamically display product data
+# Milestone 11: Dynamic Home Page
+
+## Welcome to Milestone 11! 🌟
+
+Today, we will make our home page that will display all the products dynamic. We will write an endpoint that will send all the data that was saved in MongoDB using the add products page earlier.
+
+### Learning Goals 🎯
+By the end of this milestone, you will:
+- Understand how to write an endpoint that will extract and send data from MongoDB.
+- Learn how to receive data at the frontend.
+- Learn how to display that data dynamically using the product card component created earlier.
+
+# Milestone 12: My Products Page
+
+## Overview
+In this milestone, we created a "My Products" page that displays all the products added by the user, filtered by their email.
+
+## Features
+- **Backend**: Added an endpoint to fetch products by user email.
+- **Frontend**: Created a function to retrieve and display products dynamically.
+- **Component**: Utilized the `Card` component to present each product.
+
+# Milestone 13: Edit Product Functionality
+
+## Learning Goals 🎯
+- Write an endpoint to update existing data in MongoDB.
+- Autofill forms with previous data for editing.
+
+# Milestone 14: Delete Product Functionality
+
+## Learning Goals 🎯
+- Write an endpoint to update existing data in MongoDB.
+- Deletes the product from the page
