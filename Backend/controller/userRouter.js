@@ -4,7 +4,6 @@ const bcrypt = require('bcryptjs');
 const multer = require('multer');
 const jwt = require('jsonwebtoken');
 const User = require('../model/userModel');
-const authenticate = require('../middleware/auth');
 require('dotenv').config();
 
 // Configure multer for file uploads
@@ -32,11 +31,16 @@ router.post("/signup", async (req, res) => {
       return res.status(400).json({ message: "Email already exists" });
     }
 
-    const newUser = new User({ name, email, password });
-    await newUser.save();
+    const newUser = new User({
+      name,
+      email,
+      password
+    });
 
+    await newUser.save();
     res.status(201).json({ message: "User registered successfully" });
   } catch (error) {
+    console.error("Signup error:", error);
     res.status(500).json({ message: "Server error. Please try again later." });
   }
 });
@@ -45,11 +49,13 @@ router.post("/signup", async (req, res) => {
 router.post('/login', async (req, res) => {
   try {
     const { email, password } = req.body;
+
     if (!email || !password) {
       return res.status(400).json({ message: "Email and password are required" });
     }
 
     const user = await User.findOne({ email }).select("+password");
+
     if (!user) {
       return res.status(400).json({ message: "Invalid credentials" });
     }
@@ -67,9 +73,10 @@ router.post('/login', async (req, res) => {
     res.status(200).json({
       message: "Login successful",
       token,
-      user: { userId: user._id, name: user.name }
-    });
+      user: { userId: user._id, name: user.name, email: user.email }
+  });
   } catch (err) {
+    console.error("Login error:", err);
     res.status(500).json({ message: "Server Error" });
   }
 });
@@ -78,60 +85,71 @@ router.post('/login', async (req, res) => {
 router.get('/users', async (req, res) => {
   try {
     const users = await User.find();
+    if (!users || users.length === 0) {
+      return res.status(404).json({ message: "No users found" });
+    }
     res.status(200).json(users);
   } catch (error) {
     res.status(500).json({ error: "Internal server error" });
   }
 });
 
-// Add Address to User Profile
-router.post('/add-address', authenticate, async (req, res) => {
+// Fetch user addresses
+router.get('/addresses', async (req, res) => {
+  const { email } = req.query;
+
   try {
-    console.log("🔹 Address Request Received:", req.body);
-    console.log("🔹 User ID:", req.user._id);
-
-    const { country, city, address1, address2, zipCode, addressType } = req.body;
-
-    if (!country || !city || !address1 || !zipCode) {
-      return res.status(400).json({ message: "All required fields must be filled!" });
-    }
-
-    const user = await User.findById(req.user._id);
+    const user = await User.findOne({ email });
     if (!user) {
-      console.log("❌ User Not Found!");
-      return res.status(404).json({ message: "User not found!" });
+      return res.status(404).json({ message: 'User not found' });
     }
 
-    if (!Array.isArray(user.addresses)) {
-      user.addresses = [];
-    }
-
-    user.addresses.push({ country, city, address1, address2, zipCode, addressType });
-
-    await user.save();
-    console.log("✅ Address Added Successfully!", user.addresses);
-
-    res.status(200).json({ message: "Address added successfully!", user });
+    res.status(200).json({ addresses: user.addresses });
   } catch (error) {
-    console.error("❌ Internal Server Error:", error);
-    res.status(500).json({ message: "Internal server error", error: error.message });
+    console.error('Error fetching addresses:', error);
+    res.status(500).json({ message: 'Server error' });
   }
 });
 
+// Send user data via email
+router.post('/send-user-data', async (req, res) => {
+  const { email } = req.body;
 
-// Update Profile
-router.put('/update-profile', authenticate, async (req, res) => {
   try {
-    const { name, phone, avatar, addresses } = req.body;
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
 
-    const updateData = {
-      name,
-      phone,
-      addresses,
-      avatar: avatar || ""  // ✅ Store avatar as a simple URL string
-    };
+    const message = `
+      Name: ${user.name}
+      Email: ${user.email}
+      Addresses: ${user.addresses.join(', ')}
+    `;
 
-    const user = await User.findByIdAndUpdate(req.user._id, updateData, { new: true });
+    await sendEmail({
+      email: user.email,
+      subject: 'Your User Data',
+      message,
+    });
+
+    res.status(200).json({ message: 'User data sent successfully' });
+  } catch (error) {
+    console.error('Error sending user data:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// Update user profile
+router.put('/update-profile', async (req, res) => {
+  const { name, email, phone, avatar, addresses } = req.body;
+
+  try {
+    const user = await User.findOneAndUpdate(
+      { email },
+      { name, phone, avatar, addresses },
+      { new: true }
+    );
 
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
@@ -139,15 +157,10 @@ router.put('/update-profile', authenticate, async (req, res) => {
 
     res.status(200).json(user);
   } catch (error) {
-    console.error('❌ Error updating profile:', error);
-    res.status(500).json({ message: 'Internal server error', error: error.message });
+    console.error('Error updating profile:', error);
+    res.status(500).json({ message: 'Server error' });
   }
 });
-
-
-
-
-
 
 // Endpoint for uploading avatar
 router.post('/upload-avatar', upload.single('avatar'), (req, res) => {
